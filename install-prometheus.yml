@@ -1,0 +1,74 @@
+---
+- name: Install and Configure Prometheus
+  hosts: localhost
+  become: true
+
+  tasks:
+    # Install wget for downloading Prometheus
+    - name: Install wget
+      yum:
+        name: wget
+        state: present
+
+    # Download Prometheus
+    - name: Download Prometheus
+      get_url:
+        url: "https://github.com/prometheus/prometheus/releases/download/v2.47.0/prometheus-2.47.0.linux-amd64.tar.gz"
+        dest: /tmp/prometheus.tar.gz
+      register: download_status
+      failed_when: download_status is failed
+      ignore_errors: no
+      tags: download
+
+    # Extract Prometheus
+    - name: Extract Prometheus
+      unarchive:
+        src: /tmp/prometheus.tar.gz
+        dest: /opt/
+        remote_src: yes
+      tags: extract
+
+    # Move Prometheus binary
+    - name: Move Prometheus binaries to /usr/local/bin
+      copy:
+        src: /opt/prometheus-2.47.0.linux-amd64/prometheus
+        dest: /usr/local/bin/
+        remote_src: yes
+      tags: move_binary
+
+    # Set executable permissions for Prometheus binary
+    - name: Set execute permissions on Prometheus binary
+      file:
+        path: /usr/local/bin/prometheus
+        mode: '0755'
+        owner: root
+        group: root
+      tags: set_permissions
+
+    # Create Prometheus configuration
+    - name: Create Prometheus configuration file
+      copy:
+        content: |
+          global:
+            scrape_interval: 15s
+
+          scrape_configs:
+            - job_name: 'prometheus'
+              static_configs:
+                - targets: ['localhost:9090']
+        dest: /etc/prometheus.yml
+      tags: configure
+
+    # Start Prometheus
+    - name: Start Prometheus
+      shell: nohup prometheus --config.file=/etc/prometheus.yml > /dev/null 2>&1 &
+      register: start_status
+      failed_when: start_status.rc != 0
+      tags: start_service
+
+    # Verify Prometheus is Running
+    - name: Verify Prometheus process
+      shell: pgrep prometheus
+      register: prometheus_process
+      failed_when: prometheus_process.rc != 0
+      tags: verify
