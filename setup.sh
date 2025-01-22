@@ -6,11 +6,11 @@ sudo yum install -y ansible || { echo "Failed to install Ansible. Exiting."; exi
 
 # Step 2: Run Prometheus Playbook
 echo "Running Prometheus playbook..."
-ansible-playbook /home/ec2-user/install-prometheus.yml || { echo "Failed to run Prometheus playbook. Exiting."; exit 1; }
+ansible-playbook ./install-prometheus.yml || { echo "Failed to run Prometheus playbook. Exiting."; exit 1; }
 
 # Step 3: Run Grafana Playbook
 echo "Running Grafana playbook..."
-ansible-playbook /home/ec2-user/install-grafana.yml || { echo "Failed to run Grafana playbook. Exiting."; exit 1; }
+ansible-playbook ./install-grafana.yml || { echo "Failed to run Grafana playbook. Exiting."; exit 1; }
 
 # Step 4: Fetch Public IP Address
 echo "Fetching public IP address..."
