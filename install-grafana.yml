@@ -2,12 +2,22 @@
 - name: Install Grafana on Linux
   hosts: localhost
   become: yes
+
   tasks:
+    # Check if Grafana is already installed
+    - name: Check if Grafana is installed
+      command: which grafana-server
+      register: grafana_installed
+      ignore_errors: yes
+
+    # Add Grafana GPG key
     - name: Add Grafana GPG key
       rpm_key:
         state: present
         key: https://packages.grafana.com/gpg.key
+      when: grafana_installed.rc != 0
 
+    # Add Grafana repository
     - name: Add Grafana repository
       yum_repository:
         name: grafana
@@ -15,14 +25,19 @@
         baseurl: https://packages.grafana.com/oss/rpm
         gpgcheck: yes
         enabled: yes
+      when: grafana_installed.rc != 0
 
+    # Install Grafana
     - name: Install Grafana
       yum:
         name: grafana
         state: present
+      when: grafana_installed.rc != 0
 
+    # Start and enable Grafana service
     - name: Start and enable Grafana service
       service:
         name: grafana-server
         state: started
         enabled: yes
+      when: grafana_installed.rc != 0
