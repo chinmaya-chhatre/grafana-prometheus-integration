@@ -10,6 +10,14 @@
       register: grafana_installed
       ignore_errors: yes
 
+    # Skip the rest of the tasks if Grafana is installed
+    - name: Skip installation if Grafana is already installed
+      debug:
+        msg: "Grafana is already installed."
+      when: grafana_installed.rc == 0
+      changed_when: false
+      tags: skip_grafana_installation
+
     # Add Grafana GPG key
     - name: Add Grafana GPG key
       rpm_key:
