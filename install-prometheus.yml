@@ -10,6 +10,14 @@
       register: prometheus_installed
       ignore_errors: yes
 
+    # Skip the rest of the tasks if Prometheus is installed
+    - name: Skip installation if Prometheus is already installed
+      debug:
+        msg: "Prometheus is already installed."
+      when: prometheus_installed.rc == 0
+      changed_when: false
+      tags: skip_prometheus_installation
+
     # Install wget for downloading Prometheus
     - name: Install wget
       yum:
@@ -75,3 +83,4 @@
       shell: pgrep prometheus
       register: prometheus_process
       failed_when: prometheus_process.rc != 0
+      when: prometheus_installed.rc != 0
