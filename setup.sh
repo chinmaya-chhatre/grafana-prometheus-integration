@@ -29,5 +29,10 @@ else
   echo "Installation complete. Access the UIs using the URLs below:"
   echo "Prometheus: http://$PUBLIC_IP:9090"
   echo "Grafana: http://$PUBLIC_IP:3000"
+  echo
+  echo "Grafana Default Login:"
+  echo "Username: admin"
+  echo "Password: admin"
+  echo
+  echo "NOTE: You will be prompted to change the password upon first login."
 fi
-
