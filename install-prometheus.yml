@@ -4,21 +4,25 @@
   become: true
 
   tasks:
+    # Check if Prometheus is already installed
+    - name: Check if Prometheus is installed
+      command: which prometheus
+      register: prometheus_installed
+      ignore_errors: yes
+
     # Install wget for downloading Prometheus
     - name: Install wget
       yum:
         name: wget
         state: present
+      when: prometheus_installed.rc != 0
 
     # Download Prometheus
     - name: Download Prometheus
       get_url:
         url: "https://github.com/prometheus/prometheus/releases/download/v2.47.0/prometheus-2.47.0.linux-amd64.tar.gz"
         dest: /tmp/prometheus.tar.gz
-      register: download_status
-      failed_when: download_status is failed
-      ignore_errors: no
-      tags: download
+      when: prometheus_installed.rc != 0
 
     # Extract Prometheus
     - name: Extract Prometheus
@@ -26,7 +30,7 @@
         src: /tmp/prometheus.tar.gz
         dest: /opt/
         remote_src: yes
-      tags: extract
+      when: prometheus_installed.rc != 0
 
     # Move Prometheus binary
     - name: Move Prometheus binaries to /usr/local/bin
@@ -34,7 +38,7 @@
         src: /opt/prometheus-2.47.0.linux-amd64/prometheus
         dest: /usr/local/bin/
         remote_src: yes
-      tags: move_binary
+      when: prometheus_installed.rc != 0
 
     # Set executable permissions for Prometheus binary
     - name: Set execute permissions on Prometheus binary
@@ -43,7 +47,7 @@
         mode: '0755'
         owner: root
         group: root
-      tags: set_permissions
+      when: prometheus_installed.rc != 0
 
     # Create Prometheus configuration
     - name: Create Prometheus configuration file
@@ -57,18 +61,17 @@
               static_configs:
                 - targets: ['localhost:9090']
         dest: /etc/prometheus.yml
-      tags: configure
+      when: prometheus_installed.rc != 0
 
     # Start Prometheus
     - name: Start Prometheus
       shell: nohup prometheus --config.file=/etc/prometheus.yml > /dev/null 2>&1 &
       register: start_status
       failed_when: start_status.rc != 0
-      tags: start_service
+      when: prometheus_installed.rc != 0
 
     # Verify Prometheus is Running
     - name: Verify Prometheus process
       shell: pgrep prometheus
       register: prometheus_process
       failed_when: prometheus_process.rc != 0
-      tags: verify
