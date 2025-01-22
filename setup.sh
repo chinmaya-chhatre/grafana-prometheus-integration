@@ -29,3 +29,5 @@ else
   echo "Installation complete. Access the UIs using the URLs below:"
   echo "Prometheus: http://$PUBLIC_IP:9090"
   echo "Grafana: http://$PUBLIC_IP:3000"
+fi
+
